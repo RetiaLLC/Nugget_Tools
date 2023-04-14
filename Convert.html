@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DuckyScript to CatScratch Converter</title>
+</head>
+<body>
+  <h1>DuckyScript to CatScratch Converter</h1>
+  <input type="file" id="fileInput" accept=".txt">
+  <button id="convertButton" disabled>Convert</button>
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const convertButton = document.getElementById('convertButton');
+
+    fileInput.addEventListener('change', () => {
+      convertButton.disabled = !fileInput.files.length;
+    });
+
+    function isDuckyScript(fileContent) {
+      const validCommands = new Set(["REM", "DEFAULT_DELAY", "DELAY", "STRING", "GUI", "ALT", "SHIFT", "CONTROL", "MENU", "ENTER", "ESCAPE", "TAB", "SPACE", "DELETE", "INSERT", "HOME", "END", "PAGEUP", "PAGEDOWN", "UPARROW", "DOWNARROW", "LEFTARROW", "RIGHTARROW", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "PRINTSCREEN", "SCROLLLOCK", "PAUSE", "CAPSLOCK", "NUMLOCK", "BREAK", "REPEAT", "REM_ALL"]);
+
+      const lines = fileContent.split('\n');
+      const totalLines = lines.length;
+      let validLines = 0;
+
+      for (const line of lines) {
+        const firstWord = line.split(' ')[0];
+        if (validCommands.has(firstWord)) {
+          validLines++;
+        }
+      }
+
+      const validPercentage = (validLines / totalLines) * 100;
+      return validPercentage >= 80;
+    }
+
+    function convertToCatScratch(fileContent) {
+      const replacements = {
+        'STRING': 'TYPE',
+        'DELAY': 'WAIT',
+        'REM': '//'
+      };
+
+      const lines = fileContent.split('\n');
+      let outputContent = "// Converted by ScratchChecker V0.1\n";
+
+      for (const line of lines) {
+        const words = line.split(' ');
+        const firstWord = words[0];
+        const rest = words.slice(1).join(' ');
+
+        if (replacements.hasOwnProperty(firstWord)) {
+          outputContent += `${replacements[firstWord]} ${rest}\n`;
+        } else {
+          outputContent += `${line}\n`;
+        }
+      }
+
+      return outputContent;
+    }
+
+    function downloadFile(filename, content) {
+      const element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+      element.setAttribute('download', filename);
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
+
+          convertButton.addEventListener('click', () => {
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+              const fileContent = event.target.result;
+
+              if (isDuckyScript(fileContent)) {
+                const outputContent = convertToCatScratch(fileContent);
+                const outputFilename = 'CatScratch_' + file.name;
+                downloadFile(outputFilename, outputContent);
+              } else {
+                alert('The selected file is not a valid DuckyScript file.');
+              }
+            };
+
+            reader.readAsText(file);
+          });
+        </script>
+      </body>
+      </html>
